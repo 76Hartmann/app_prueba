@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mini Biblioteca</title>
+<style>
+  :root {
+    --fondo: #eef2f3;
+    --hoja: #fbfcfc;
+    --tinta: #1d2b33;
+    --tinta-suave: #51636c;
+    --linea: #c9d4d8;
+    --azul: #234e70;
+    --azul-oscuro: #17374f;
+    --sello: #b23a48;
+    --ok: #2f6b4f;
+    --serif: Georgia, "Times New Roman", serif;
+    --sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--fondo);
+    color: var(--tinta);
+    font-family: var(--sans);
+    line-height: 1.5;
+  }
+  .pagina {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 28px 20px 48px;
+  }
+  header h1 {
+    font-family: var(--serif);
+    font-size: 2.1rem;
+    margin: 0 0 4px;
+    letter-spacing: -0.01em;
+  }
+  header p { margin: 0; color: var(--tinta-suave); max-width: 60ch; }
+
+  .barra-sesion {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+    margin: 20px 0 8px;
+    padding: 12px 14px;
+    background: var(--hoja);
+    border: 1px solid var(--linea);
+    border-radius: 6px;
+  }
+  .barra-sesion .estado { margin-left: auto; font-size: 0.9rem; color: var(--tinta-suave); }
+  .barra-sesion .estado.activa { color: var(--ok); font-weight: 600; }
+
+  input, button {
+    font: inherit;
+    padding: 7px 10px;
+    border: 1px solid var(--linea);
+    border-radius: 4px;
+    background: #fff;
+    color: var(--tinta);
+  }
+  input:focus-visible, button:focus-visible {
+    outline: 2px solid var(--azul);
+    outline-offset: 1px;
+  }
+  button {
+    cursor: pointer;
+    background: var(--azul);
+    border-color: var(--azul);
+    color: #fff;
+  }
+  button:hover { background: var(--azul-oscuro); }
+  button.secundario { background: #fff; color: var(--azul); }
+  button.secundario:hover { background: var(--fondo); }
+  button.peligro { background: #fff; color: var(--sello); border-color: var(--sello); padding: 4px 10px; }
+  button.peligro:hover { background: #fbeeee; }
+
+  .columnas {
+    display: grid;
+    grid-template-columns: 1.6fr 1fr;
+    gap: 20px;
+    margin-top: 16px;
+  }
+  @media (max-width: 760px) { .columnas { grid-template-columns: 1fr; } }
+
+  section h2 { font-family: var(--serif); font-size: 1.3rem; margin: 0 0 10px; }
+
+  .buscador { display: flex; gap: 8px; margin-bottom: 12px; }
+  .buscador input { flex: 1; }
+
+  /* Fichas de catálogo: cada libro es una ficha con renglones */
+  .ficha {
+    display: grid;
+    grid-template-columns: 52px 1fr auto;
+    gap: 12px;
+    align-items: start;
+    padding: 12px 14px;
+    margin-bottom: 8px;
+    background: var(--hoja);
+    border: 1px solid var(--linea);
+    border-left: 4px solid var(--azul);
+    border-radius: 4px;
+    background-image: repeating-linear-gradient(
+      to bottom, transparent 0, transparent 25px, #e3eaed 25px, #e3eaed 26px);
+  }
+  .ficha .numero { font-family: var(--mono); color: var(--tinta-suave); font-size: 0.85rem; padding-top: 2px; }
+  .ficha .titulo { font-family: var(--serif); font-size: 1.05rem; font-weight: 700; }
+  .ficha .titulo.vacio { color: var(--sello); font-style: italic; font-weight: 400; }
+  .ficha .detalle { color: var(--tinta-suave); font-size: 0.92rem; }
+  .vacio-lista { padding: 18px; color: var(--tinta-suave); border: 1px dashed var(--linea); border-radius: 4px; }
+
+  form.nuevo { display: grid; gap: 8px; padding: 14px; background: var(--hoja); border: 1px solid var(--linea); border-radius: 6px; }
+  form.nuevo label { display: grid; gap: 3px; font-size: 0.92rem; color: var(--tinta-suave); }
+  .aviso { min-height: 1.3em; font-size: 0.92rem; }
+  .aviso.error { color: var(--sello); }
+  .aviso.exito { color: var(--ok); }
+
+  /* Registro de peticiones: muestra lo mismo que verán en Postman */
+  .registro {
+    margin-top: 24px;
+    padding: 14px;
+    background: var(--tinta);
+    color: #dbe6ea;
+    border-radius: 6px;
+    font-family: var(--mono);
+    font-size: 0.85rem;
+  }
+  .registro h2 { color: #fff; font-size: 1.05rem; }
+  .registro ol { list-style: none; margin: 0; padding: 0; max-height: 180px; overflow-y: auto; }
+  .registro li { padding: 2px 0; display: flex; gap: 10px; flex-wrap: wrap; }
+  .registro .codigo-ok { color: #7fd1a6; }
+  .registro .codigo-error { color: #ff9aa5; }
+  .registro .tiempo { color: #9bb0b8; margin-left: auto; }
+
+  .reporte-caja { margin-top: 12px; padding: 12px 14px; background: var(--hoja); border: 1px solid var(--linea); border-radius: 6px; }
+  .reporte-caja pre { margin: 8px 0 0; font-family: var(--mono); font-size: 0.85rem; white-space: pre-wrap; }
+</style>
+</head>
+<body>
+<div class="pagina">
+
+  <header>
+    <h1>Mini Biblioteca</h1>
+    <p>Catálogo de libros para practicar pruebas de API. Esta página usa la misma API que probarás con Postman y JMeter.</p>
+  </header>
+
+  <div class="barra-sesion">
+    <input id="usuario" aria-label="Usuario" value="admin" size="12">
+    <input id="clave" aria-label="Contraseña" type="password" value="admin123" size="12">
+    <button id="btn-entrar" type="button">Iniciar sesión</button>
+    <button id="btn-salir" type="button" class="secundario" hidden>Cerrar sesión</button>
+    <span id="estado-sesion" class="estado">Sin sesión: puedes consultar, no modificar</span>
+  </div>
+
+  <div class="columnas">
+    <section>
+      <h2>Catálogo</h2>
+      <div class="buscador">
+        <input id="busqueda" type="search" placeholder="Buscar por título o autor" aria-label="Buscar">
+        <button id="btn-buscar" type="button">Buscar</button>
+      </div>
+      <div id="lista" aria-live="polite"></div>
+    </section>
+
+    <section>
+      <h2>Agregar libro</h2>
+      <form class="nuevo" id="form-nuevo">
+        <label>Título <input id="f-titulo" autocomplete="off"></label>
+        <label>Autor <input id="f-autor" autocomplete="off"></label>
+        <label>Año de publicación <input id="f-anio" inputmode="numeric" autocomplete="off"></label>
+        <button type="submit">Guardar libro</button>
+        <div id="aviso" class="aviso" role="status"></div>
+      </form>
+
+      <div class="reporte-caja">
+        <button id="btn-reporte" type="button" class="secundario">Generar reporte</button>
+        <pre id="salida-reporte">Aún no se ha generado ningún reporte.</pre>
+      </div>
+    </section>
+  </div>
+
+  <div class="registro">
+    <h2>Registro de peticiones</h2>
+    <ol id="registro"></ol>
+  </div>
+
+</div>
+
+<script>
+  let token = null;
+  const $ = (id) => document.getElementById(id);
+
+  // Envuelve fetch y deja constancia de cada petición en el registro.
+  async function llamar(metodo, ruta, cuerpo) {
+    const opciones = { method: metodo, headers: {} };
+    if (cuerpo !== undefined) {
+      opciones.headers["Content-Type"] = "application/json";
+      opciones.body = JSON.stringify(cuerpo);
+    }
+    if (token) opciones.headers["Authorization"] = "Bearer " + token;
+
+    const inicio = performance.now();
+    const respuesta = await fetch(ruta, opciones);
+    const ms = Math.round(performance.now() - inicio);
+    anotar(metodo, ruta, respuesta.status, ms);
+
+    let datos = null;
+    try { datos = await respuesta.json(); } catch (e) { /* sin cuerpo */ }
+    return { ok: respuesta.ok, estado: respuesta.status, datos };
+  }
+
+  function anotar(metodo, ruta, estado, ms) {
+    const li = document.createElement("li");
+    const m = document.createElement("span");
+    m.textContent = metodo + " " + ruta;
+    const c = document.createElement("span");
+    c.textContent = estado;
+    c.className = estado < 400 ? "codigo-ok" : "codigo-error";
+    const t = document.createElement("span");
+    t.className = "tiempo";
+    t.textContent = ms + " ms";
+    li.append(m, c, t);
+    const lista = $("registro");
+    lista.prepend(li);
+    while (lista.children.length > 30) lista.lastChild.remove();
+  }
+
+  function mostrarAviso(texto, tipo) {
+    const a = $("aviso");
+    a.textContent = texto;
+    a.className = "aviso " + (tipo || "");
+  }
+
+  function pintarSesion() {
+    const activa = token !== null;
+    $("btn-entrar").hidden = activa;
+    $("btn-salir").hidden = !activa;
+    const e = $("estado-sesion");
+    e.textContent = activa ? "Sesión iniciada: puedes agregar y eliminar" : "Sin sesión: puedes consultar, no modificar";
+    e.className = "estado" + (activa ? " activa" : "");
+  }
+
+  async function cargarLibros() {
+    const q = $("busqueda").value.trim();
+    const ruta = "/api/libros" + (q ? "?q=" + encodeURIComponent(q) : "");
+    const r = await llamar("GET", ruta);
+    const cont = $("lista");
+    cont.replaceChildren();
+
+    if (!r.ok || !Array.isArray(r.datos) || r.datos.length === 0) {
+      const v = document.createElement("div");
+      v.className = "vacio-lista";
+      v.textContent = q ? "Ningún libro coincide con la búsqueda." : "El catálogo está vacío. Agrega el primer libro.";
+      cont.append(v);
+      return;
+    }
+
+    for (const libro of r.datos) {
+      const ficha = document.createElement("div");
+      ficha.className = "ficha";
+
+      const num = document.createElement("div");
+      num.className = "numero";
+      num.textContent = "#" + libro.id;
+
+      const cuerpo = document.createElement("div");
+      const titulo = document.createElement("div");
+      titulo.className = "titulo" + (libro.titulo ? "" : " vacio");
+      titulo.textContent = libro.titulo || "(sin título)";
+      const detalle = document.createElement("div");
+      detalle.className = "detalle";
+      detalle.textContent = libro.autor + ", " + libro.anio;
+      cuerpo.append(titulo, detalle);
+
+      const borrar = document.createElement("button");
+      borrar.type = "button";
+      borrar.className = "peligro";
+      borrar.textContent = "Eliminar";
+      borrar.addEventListener("click", () => eliminar(libro.id));
+
+      ficha.append(num, cuerpo, borrar);
+      cont.append(ficha);
+    }
+  }
+
+  async function eliminar(id) {
+    const r = await llamar("DELETE", "/api/libros/" + id);
+    if (r.estado === 401) mostrarAviso("Inicia sesión para eliminar libros.", "error");
+    else mostrarAviso("", "");
+    cargarLibros();
+  }
+
+  $("btn-entrar").addEventListener("click", async () => {
+    const r = await llamar("POST", "/api/login", {
+      usuario: $("usuario").value,
+      password: $("clave").value,
+    });
+    if (r.ok) {
+      token = r.datos.token;
+      mostrarAviso("", "");
+    } else {
+      token = null;
+      mostrarAviso("Usuario o contraseña incorrectos.", "error");
+    }
+    pintarSesion();
+  });
+
+  $("btn-salir").addEventListener("click", () => { token = null; pintarSesion(); });
+  $("btn-buscar").addEventListener("click", cargarLibros);
+  $("busqueda").addEventListener("keydown", (e) => { if (e.key === "Enter") cargarLibros(); });
+
+  $("form-nuevo").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const anioTexto = $("f-anio").value.trim();
+    const r = await llamar("POST", "/api/libros", {
+      titulo: $("f-titulo").value,
+      autor: $("f-autor").value,
+      anio: /^-?\d+$/.test(anioTexto) ? parseInt(anioTexto, 10) : anioTexto,
+    });
+    if (r.ok) {
+      mostrarAviso("Libro guardado.", "exito");
+      $("form-nuevo").reset();
+      cargarLibros();
+    } else if (r.estado === 401) {
+      mostrarAviso("Inicia sesión para agregar libros.", "error");
+    } else {
+      mostrarAviso((r.datos && r.datos.error) || "No se pudo guardar el libro.", "error");
+    }
+  });
+
+  $("btn-reporte").addEventListener("click", async () => {
+    $("salida-reporte").textContent = "Generando…";
+    const r = await llamar("GET", "/api/reporte");
+    $("salida-reporte").textContent = r.ok
+      ? JSON.stringify(r.datos, null, 2)
+      : "El reporte falló (" + r.estado + "): " + ((r.datos && r.datos.error) || "error desconocido");
+  });
+
+  pintarSesion();
+  cargarLibros();
+</script>
+</body>
+</html>
